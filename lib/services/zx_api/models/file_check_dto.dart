@@ -22,7 +22,10 @@ class FileCheckDto {
   FileCheckDto.fromJson(dynamic json) {
     _entryId = json["entry_id"];
     _title = json["title"];
-    _file = json["file"] != null ? FileItem.fromJson(json["file"]) : null;
+    // v5 returns a list of matching files, v3 returned a single object
+    var file = json["file"];
+    if (file is List) file = file.isNotEmpty ? file.first : null;
+    _file = file != null ? FileItem.fromJson(file) : null;
   }
 
   Map<String, dynamic> toJson() {

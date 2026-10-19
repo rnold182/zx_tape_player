@@ -21,16 +21,16 @@ import 'models/items_dto.dart';
 import 'models/term_dto.dart';
 
 class ZxApiService implements BackendService {
-  static const _baseUrl = 'https://api.zxinfo.dk/v3';
+  static const _baseUrl = 'https://api.zxinfo.dk/v5';
   static const _contentBaseUrl = 'https://zxinfo.dk/media';
   static const _tapeBaseUrl =
       "https://archive.org/download/zx-spectrum-tosec-set-v-2020-02-18-lady-eklipse/%s.zip%s";
   static const _termsUrl = '/suggest/%s';
-  static const _itemsUrl = '/search?query=%s&mode=tiny' +
+  static const _itemsUrl = '/search/%s?mode=tiny' +
       '&sort=rel_desc&contenttype=SOFTWARE&size=%s&offset=%s';
-  static const _letterUrl = '/games/byletter/%s?mode=tiny' +
+  static const _letterUrl = '/entries/byletter/%s?mode=tiny' +
       '&contenttype=SOFTWARE&size=%s&offset=%s';
-  static const _itemUrl = '/games/%s?mode=full';
+  static const _itemUrl = '/entries/%s?mode=full';
   static const _fileCheckUrl = '/filecheck/%s';
   static const _externalUrl =
       'https://zxinfo.dk/details/%s?source=zxtapeplayer';
@@ -182,9 +182,12 @@ class ZxApiService implements BackendService {
     return _contentBaseUrl + url;
   }
 
+  // The TOSEC zips on archive.org are flat ("Games/<file>"), while the API
+  // returns "/Games/<title>/<file>", so keep only the top folder and file name.
   static String _fixToSecUrl(String url) {
-    var prefix = url.split('/')[1];
-    url = _tapeBaseUrl.format([prefix, url]);
+    var parts = url.split('/').where((p) => p.isNotEmpty).toList();
+    var prefix = parts.first;
+    url = _tapeBaseUrl.format([prefix, '/$prefix/${parts.last}']);
     return url;
   }
 
