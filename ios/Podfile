@@ -43,7 +43,6 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     target.build_configurations.each do |config|
-    flutter_additional_ios_build_settings(target)
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '12.0'
       # You can remove unused permissions here
       # for more infomation: https://github.com/BaseflowIT/flutter-permission-handler/blob/develop/permission_handler/ios/Classes/PermissionHandlerEnums.h
@@ -90,5 +89,6 @@ post_install do |installer|
         'PERMISSION_BLUETOOTH=0'
       ]
     end
+    flutter_additional_ios_build_settings(target)
   end
 end
