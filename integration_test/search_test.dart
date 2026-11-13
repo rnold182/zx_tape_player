@@ -24,7 +24,7 @@ IntegrationTestWidgetsFlutterBinding binding;
 // The workflow also records the simulator screen, so screenshots here are optional
 Future<void> _screenshot(String name) async {
   try {
-    await _screenshot(name);
+    await binding.takeScreenshot(name);
   } catch (e) {
     print('[screenshot $name skipped: $e]');
   }
