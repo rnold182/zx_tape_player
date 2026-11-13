@@ -68,9 +68,12 @@ class _SearchScreenState extends State<SearchScreen> {
     return Scaffold(
         body: Column(
           children: [
-            Padding(
-                padding: EdgeInsets.fromLTRB(16.0, 40.0, 16.0, 4.0),
-                child: _buildSearchField(context)),
+            // flutter_typeahead 4.1 needs a Scrollable ancestor on Flutter 3.7+
+            SingleChildScrollView(
+                physics: NeverScrollableScrollPhysics(),
+                child: Padding(
+                    padding: EdgeInsets.fromLTRB(16.0, 40.0, 16.0, 4.0),
+                    child: _buildSearchField(context))),
             Expanded(
                 child: Container(
                     width: MediaQuery.of(context).size.width,
