@@ -23,6 +23,9 @@ jobs:
       - name: Download pub dependencies
         run: flutter pub get
 
+      - name: Patch plugins for current Xcode
+        run: bash .github/scripts/patch-ios-plugins.sh
+
       - name: Boot iPad simulator
         run: |
           UDID=$(xcrun simctl list devices available -j | python3 -c "

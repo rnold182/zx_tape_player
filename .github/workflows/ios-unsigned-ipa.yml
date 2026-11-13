@@ -29,6 +29,9 @@ jobs:
       - name: Download pub dependencies
         run: flutter pub get
 
+      - name: Patch plugins for current Xcode
+        run: bash .github/scripts/patch-ios-plugins.sh
+
       - name: Build iOS app (no codesign)
         run: flutter build ios --release --no-codesign
 
