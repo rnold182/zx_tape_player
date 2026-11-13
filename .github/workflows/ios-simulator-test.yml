@@ -41,6 +41,8 @@ jobs:
       - name: Run search test
         run: |
           set -o pipefail
+          mkdir -p screenshots
+          (while true; do xcrun simctl io "$SIM_UDID" screenshot "screenshots/sim-$(date +%H%M%S).png" >/dev/null 2>&1; sleep 2; done) &
           flutter drive -d "$SIM_UDID" \
             --driver=test_driver/integration_test.dart \
             --target=integration_test/search_test.dart 2>&1 | tee drive.log

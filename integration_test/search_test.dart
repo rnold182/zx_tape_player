@@ -19,27 +19,38 @@ void _report(String step) {
       'texts: $texts');
 }
 
+IntegrationTestWidgetsFlutterBinding binding;
+
+// The workflow also records the simulator screen, so screenshots here are optional
+Future<void> _screenshot(String name) async {
+  try {
+    await _screenshot(name);
+  } catch (e) {
+    print('[screenshot $name skipped: $e]');
+  }
+}
+
 void main() {
-  var binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('typing a letter shows the search screen', (tester) async {
     app.main();
     await _wait(tester, 6); // splash screen waits 3 seconds
     _report('home');
-    await binding.takeScreenshot('1_home');
+    await _screenshot('1_home');
 
     await tester.enterText(find.byType(TextField).first, 'm');
     await _wait(tester, 2);
     _report('after typing m');
-    await binding.takeScreenshot('2_after_typing');
+    await _screenshot('2_after_typing');
 
     await _wait(tester, 8);
     _report('after waiting');
-    await binding.takeScreenshot('3_after_waiting');
+    await _screenshot('3_after_waiting');
 
     await tester.testTextInput.receiveAction(TextInputAction.search);
     await _wait(tester, 10);
     _report('after submit');
-    await binding.takeScreenshot('4_after_submit');
+    await _screenshot('4_after_submit');
   });
 }
