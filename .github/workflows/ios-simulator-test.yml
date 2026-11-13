@@ -1,0 +1,52 @@
+name: iOS simulator test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ios-ipa]
+
+jobs:
+  test:
+    name: Search screen on iPad simulator
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.7.12'
+          channel: 'stable'
+          cache: true
+
+      - name: Download pub dependencies
+        run: flutter pub get
+
+      - name: Boot iPad simulator
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c "
+          import json, sys
+          devices = json.load(sys.stdin)['devices']
+          ipads = [d for runtime, ds in devices.items() if 'iOS' in runtime for d in ds if 'iPad' in d['name']]
+          print(ipads[-1]['udid'])
+          ")
+          echo "SIM_UDID=$UDID" >> $GITHUB_ENV
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID"
+
+      - name: Run search test
+        run: |
+          set -o pipefail
+          flutter drive -d "$SIM_UDID" \
+            --driver=test_driver/integration_test.dart \
+            --target=integration_test/search_test.dart 2>&1 | tee drive.log
+
+      - name: Upload screenshots and log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: simulator-test-results
+          path: |
+            screenshots/
+            drive.log

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:app_center_bundle_sdk/app_center_bundle_sdk.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -400,7 +401,34 @@ class _TapePlayerBloc {
           var sink = LoadingProgressData(data.filePath, percent);
           data.controller.sink.add(sink);
         });
-    await data.file.writeAsBytes(wav);
+    await data.file.writeAsBytes(_toLeftChannelOnly(wav));
+  }
+
+  // zx_tape_to_wav writes 8-bit mono PCM with a 44-byte header. Re-encode it
+  // as stereo with the signal on the left channel and silence on the right.
+  static Uint8List _toLeftChannelOnly(Uint8List mono) {
+    const headerSize = 44;
+    const silence = 128; // 8-bit PCM is unsigned, 128 is the zero level
+    var header = ByteData.sublistView(mono, 0, headerSize);
+    var frequency = header.getUint32(24, Endian.little);
+    var samples = mono.length - headerSize;
+    var dataSize = samples * 2;
+
+    var result = Uint8List(headerSize + dataSize);
+    var out = ByteData.sublistView(result);
+    result.setRange(0, headerSize, mono);
+    out.setUint32(4, 36 + dataSize, Endian.little); // RIFF chunk size
+    out.setUint16(22, 2, Endian.little); // channels
+    out.setUint32(28, frequency * 2, Endian.little); // byte rate
+    out.setUint16(32, 2, Endian.little); // block align
+    out.setUint16(34, 8, Endian.little); // bits per sample
+    out.setUint32(40, dataSize, Endian.little); // data chunk size
+
+    for (var i = 0; i < samples; i++) {
+      result[headerSize + i * 2] = mono[headerSize + i];
+      result[headerSize + i * 2 + 1] = silence;
+    }
+    return result;
   }
 
   Future<bool> _prepareTapeForPlay({bool force = true}) async {
